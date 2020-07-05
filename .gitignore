@@ -1,1 +1,3 @@
 *.tlog*.exe*.dll
+*.log
+*.*.tlog
