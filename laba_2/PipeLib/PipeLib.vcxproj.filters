@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="pipe">
+      <UniqueIdentifier>{e3bc43af-3005-432b-b8b9-320925a6cd7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="hiding">
+      <UniqueIdentifier>{590807a8-318b-4b5e-87df-73b986d40622}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Pipe.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="FileHiding.cpp">
+      <Filter>hiding</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FileHiding.h">
+      <Filter>hiding</Filter>
+    </ClInclude>
+    <ClInclude Include="libPipe.h">
+      <Filter>pipe</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
