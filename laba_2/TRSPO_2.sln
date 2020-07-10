@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1145
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lab2Hook", "Lab2Hook\Lab2Hook.vcxproj", "{A64A7F75-A371-4A95-85D1-FBA8318452F8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DllHook", "Lab2Hook\Lab2Hook.vcxproj", "{A64A7F75-A371-4A95-85D1-FBA8318452F8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lab2Inject", "Lab2Inject\Lab2Inject.vcxproj", "{6791D236-E543-486C-9A0C-97EB1BFFBAD4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "detours", "detours\detours.vcxproj", "{FE252580-2D5A-4E7D-9829-8B763F969568}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PipeLib", "PipeLib\PipeLib.vcxproj", "{981D976F-D426-44D2-A91F-B2AD9C99698E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "addLibs", "PipeLib\PipeLib.vcxproj", "{981D976F-D426-44D2-A91F-B2AD9C99698E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

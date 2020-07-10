@@ -1,0 +1,1 @@
+Lab2Inject.exe -name notepad.exe -hide C:\Users\hiirigma\Desktop\oop_2.txt

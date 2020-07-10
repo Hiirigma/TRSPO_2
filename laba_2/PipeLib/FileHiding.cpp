@@ -3,180 +3,252 @@
 #include <string>
 #include "FileHiding.h"
 
-string  fullpath, path, filename;
-wstring wfullpath, wpath, wfilename;
-bool isPathToHiddenFile = false;
-std::string	 FullPath;
-std::string	 Path;
-std::string	 FileName;
-std::wstring WFull_Path;
-std::wstring WPath;
+string fullpath;
+string path;
+string filename;
+wstring wfullpath;
+wstring wpath;
+wstring wfilename;
 
-HANDLE(WINAPI* pCreateFileA) (LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
-	LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) = CreateFileA;
-HANDLE(WINAPI* pCreateFileW) (LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-	DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) = CreateFileW;
-HANDLE(WINAPI* pFindFirstFileW) (LPCWSTR lpFileName, LPWIN32_FIND_DATAW lpFindFileData) = FindFirstFileW;
-HANDLE(WINAPI* pFindFirstFileA)(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData) = FindFirstFileA;
-BOOL(WINAPI* pFindNextFileW) (HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData) = FindNextFileW;
-BOOL(WINAPI* pFindNextFileA) (HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData) = FindNextFileA;
-HANDLE(WINAPI* pFindFirstFileExA) (LPCSTR lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, LPVOID lpFindFileData,
+
+HANDLE(WINAPI* pFindFirstFileExA)(LPCSTR lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, LPVOID lpFindFileData,
 	FINDEX_SEARCH_OPS  fSearchOp, LPVOID  lpSearchFilter, DWORD dwAdditionalFlags) = FindFirstFileExA;
-HANDLE(WINAPI* pFindFirstFileExW) (LPCWSTR  lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, LPVOID  lpFindFileData,
+
+HANDLE(WINAPI *pFindFirstFileExW)(LPCWSTR  lpFileName, FINDEX_INFO_LEVELS fInfoLevelId, LPVOID  lpFindFileData,
 	FINDEX_SEARCH_OPS  fSearchOp, LPVOID lpSearchFilter, DWORD   dwAdditionalFlags) = FindFirstFileExW;
 
-HANDLE WINAPI MyCreateFileA_withHide(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+HANDLE(WINAPI *pCreateFileA)(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
+	LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) = CreateFileA;
+
+HANDLE(WINAPI *pCreateFileW)(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile) = CreateFileW;
+
+HANDLE(WINAPI *pFindFirstFileA)(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData) = FindFirstFileA;
+
+HANDLE(WINAPI *pFindFirstFileW)(LPCWSTR lpFileName, LPWIN32_FIND_DATAW lpFindFileData) = FindFirstFileW;
+
+BOOL(WINAPI *pFindNextFileA)(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData) = FindNextFileA;
+
+BOOL(WINAPI *pFindNextFileW)(HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData) = FindNextFileW;
+
+#pragma region
+
+__declspec(dllexport) HANDLE WINAPI MyFindFirstFileExA_withHide(
+	LPCSTR             lpFileName,
+	FINDEX_INFO_LEVELS fInfoLevelId,
+	LPVOID             lpFindFileData,
+	FINDEX_SEARCH_OPS  fSearchOp,
+	LPVOID             lpSearchFilter,
+	DWORD              dwAdditionalFlags
+)
 {
-	if (lpFileName == FullPath)
+	if (string(lpFileName) == fullpath)
+	{
+		return INVALID_HANDLE_VALUE;
+	}
+
+
+	return pFindFirstFileExA(
+		lpFileName,
+		fInfoLevelId,
+		lpFindFileData,
+		fSearchOp,
+		lpSearchFilter,
+		dwAdditionalFlags
+	);
+}
+
+
+__declspec(dllexport) HANDLE WINAPI MyFindFirstFileExW_withHide(
+	LPCWSTR            lpFileName,
+	FINDEX_INFO_LEVELS fInfoLevelId,
+	LPVOID             lpFindFileData,
+	FINDEX_SEARCH_OPS  fSearchOp,
+	LPVOID             lpSearchFilter,
+	DWORD              dwAdditionalFlags
+)
+{
+	if (wstring(lpFileName) == wfullpath)
+	{
+		return INVALID_HANDLE_VALUE;
+	}
+
+	return pFindFirstFileExW(
+		lpFileName,
+		fInfoLevelId,
+		lpFindFileData,
+		fSearchOp,
+		lpSearchFilter,
+		dwAdditionalFlags
+	);
+}
+
+
+__declspec(dllexport) HANDLE WINAPI MyCreateFileA_withHide(
+	LPCSTR lpFileName,
+	DWORD dwDesiredAccess,
+	DWORD dwShareMode,
+	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	DWORD dwCreationDisposition,
+	DWORD dwFlagsAndAttributes,
+	HANDLE hTemplateFile
+)
+{
+	if (string(lpFileName) == fullpath)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
 	return pCreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 }
 
-HANDLE WINAPI MyCreateFileW_withHide(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+
+__declspec(dllexport) HANDLE WINAPI MyCreateFileW_withHide(
+	LPCWSTR lpFileName,
+	DWORD dwDesiredAccess,
+	DWORD dwShareMode,
+	LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+	DWORD dwCreationDisposition,
+	DWORD dwFlagsAndAttributes,
+	HANDLE hTemplateFile
+)
 {
-	if (lpFileName == WFull_Path)
+	if (wfullpath == wstring(lpFileName))
 	{
 		return INVALID_HANDLE_VALUE;
 	}
-	return pCreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+
+	return pCreateFileW(
+		lpFileName,
+		dwDesiredAccess,
+		dwShareMode,
+		lpSecurityAttributes,
+		dwCreationDisposition,
+		dwFlagsAndAttributes,
+		hTemplateFile);
 }
 
-HANDLE WINAPI MyFindFirstFileA_withHide(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData)
+
+__declspec(dllexport) HANDLE WINAPI MyFindFirstFileA_withHide(
+	LPCSTR lpFileName,
+	LPWIN32_FIND_DATAA lpFindFileData
+)
 {
-	if (lpFileName == FullPath)
+	if (string(lpFileName) == fullpath)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
+
 	return pFindFirstFileA(lpFileName, lpFindFileData);
 }
 
-HANDLE WINAPI MyFindFirstFileW_withHide(LPCWSTR lpFileName, LPWIN32_FIND_DATAW lpFindFileData)
+
+__declspec(dllexport) HANDLE WINAPI MyFindFirstFileW_withHide(
+	LPCWSTR lpFileName,
+	LPWIN32_FIND_DATAW lpFindFileData
+)
 {
-	if (lpFileName == WFull_Path)
+	if (wstring(lpFileName) == wfullpath)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
 	return pFindFirstFileW(lpFileName, lpFindFileData);
 }
 
-BOOL WINAPI MyFindNextFileA_withHide(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
+
+__declspec(dllexport) BOOL WINAPI MyFindNextFileA_withHide(
+	HANDLE hFindFile,
+	LPWIN32_FIND_DATAA lpFindFileData
+)
 {
-	bool ret = pFindNextFileA(hFindFile, lpFindFileData);
-	if (lpFindFileData->cFileName == FullPath)
+	if (string(lpFindFileData->cFileName) == fullpath)
 	{
-		ret = pFindNextFileA(hFindFile, lpFindFileData);
+		return ERROR_NO_MORE_FILES;
 	}
-	return ret;
+	return pFindNextFileA(hFindFile, lpFindFileData);
 }
 
-BOOL WINAPI MyFindNextFileW_withHide(HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData)
+__declspec(dllexport) BOOL WINAPI MyFindNextFileW_withHide(
+	HANDLE hFindFile,
+	LPWIN32_FIND_DATAW lpFindFileData
+)
 {
-	bool ret = pFindNextFileW(hFindFile, lpFindFileData);
-	if (lpFindFileData->cFileName == WFull_Path)
+	if (wstring(lpFindFileData->cFileName) == wfullpath)
 	{
-		ret = pFindNextFileW(hFindFile, lpFindFileData);
+		return ERROR_NO_MORE_FILES;
 	}
-	return ret;
+	return pFindNextFileW(hFindFile, lpFindFileData);
 }
 
-HANDLE MyFindFirstFileExW_withHide(LPCWSTR a0, FINDEX_INFO_LEVELS a1, LPWIN32_FIND_DATAW a2, FINDEX_SEARCH_OPS a3, LPVOID a4, DWORD a5)
-{
-	HANDLE ret = pFindFirstFileExW(a0, a1, a2, a3, a4, a5);
-	if (a2->cFileName == WFull_Path)
-	{
-		ret = INVALID_HANDLE_VALUE;
-	}
-	return ret;
-}
-
-HANDLE MyFindFirstFileExA_withHide(LPCSTR a0, FINDEX_INFO_LEVELS a1, LPWIN32_FIND_DATAA a2, FINDEX_SEARCH_OPS a3, LPVOID a4, DWORD a5)
-{
-	HANDLE ret = pFindFirstFileExA(a0, a1, a2, a3, a4, a5);
-	if (a2->cFileName == FullPath)
-	{
-		pFindNextFileA(ret, a2);
-	}
-	return ret;
-}
-
-
-void setPathsToFile(const string& fileName_)
-{
-	std::size_t backslashPosition = fileName_.rfind('\\');
-
-	FullPath = fileName_;
-	path = fullpath.substr(0, backslashPosition + 1);
-	filename = fullpath.substr(backslashPosition + 1, FullPath.length());
-
-	wfullpath = wstring(fullpath.begin(), FullPath.end());
-	wpath = wstring(path.begin(), path.end());
-	wfilename = wstring(filename.begin(), filename.end());
-}
+#pragma endregion
 
 
 int hideFile(const string& fileName)
 {
-	int i;
+	LOG("hide_log");
+	LOGMSG("[!] hideFile function");
 
-	setPathsToFile(fileName);
 	LONG err = NULL;
+	string func;
+	char drive[_MAX_DRIVE] = { 0 };
+	char dir[_MAX_DIR] = { 0 };
+	char fname[_MAX_FNAME] = { 0 };
+	char ext[_MAX_EXT] = { 0 };
+	char c_fullpath[_MAX_PATH] = { 0 };
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pCreateFileA, MyCreateFileA_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pCreateFileW, MyCreateFileW_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
+	if (fileName.length() == 0 || fileName.length() > _MAX_PATH)
+	{
 		return -1;
+	}
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pFindFirstFileW, MyFindFirstFileW_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
+	_splitpath_s(fileName.c_str(), drive, dir, fname, ext);
+	filename = fname;
+	filename += ext;
+	path = drive;
+	path += dir;
+	fullpath = fileName;
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pFindFirstFileA, MyFindFirstFileA_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
+	wstring wsFullPathTemp(fullpath.begin(), fullpath.end());
+	wstring wsFilename(filename.begin(), filename.end());
+	wstring wsPath(path.begin(), path.end());
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pFindNextFileW, MyFindNextFileW_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
+	wfullpath = wsFullPathTemp;
+	wfilename = wsFilename;
+	wpath = wsPath;
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pFindNextFileA, MyFindNextFileA_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
+	//MessageBox(NULL, drive, "drive", MB_OK);
+	//MessageBox(NULL, dir, "dir", MB_OK);
+	//MessageBox(NULL, fname, "fname", MB_OK);
+	//MessageBox(NULL, ext, "ext", MB_OK);
+	//MessageBox(NULL, path.c_str(), "path", MB_OK);
+	//MessageBox(NULL, filename.c_str(), "filename", MB_OK);
+	//MessageBox(NULL, fullpath.c_str(), "fullpath", MB_OK);
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pFindFirstFileExW, MyFindFirstFileExW_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
 
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourAttach(&(PVOID&)pFindFirstFileExA, MyFindFirstFileExA_withHide);
-	err = DetourTransactionCommit();
-	if (err != NO_ERROR)
-		return -1;
+
+	func = "CreateFileA";
+	MAKE_HIDE(pCreateFileA, MyCreateFileA_withHide);
+
+	func = "CreateFileW";
+	MAKE_HIDE(pCreateFileW, MyCreateFileW_withHide);
+
+	func = "FindFirstFileA";
+	MAKE_HIDE(pFindFirstFileA, MyFindFirstFileA_withHide);
+
+	func = "FindFirstFileW";
+	MAKE_HIDE(pFindFirstFileW, MyFindFirstFileW_withHide);
+
+	func = "FindFirstFileExA";
+	MAKE_HIDE(pFindFirstFileExA, MyFindFirstFileExA_withHide);
+
+	func = "FindFirstFileExW";
+	MAKE_HIDE(pFindFirstFileExW, MyFindFirstFileExW_withHide);
+
+	func = "FindNextFileA";
+	MAKE_HIDE(pFindNextFileA, MyFindNextFileA_withHide);
+
+	func = "FindNextFileW";
+	MAKE_HIDE(pFindNextFileW, MyFindNextFileW_withHide);
+
 	return 0;
 }

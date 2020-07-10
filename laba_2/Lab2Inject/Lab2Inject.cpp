@@ -1,23 +1,12 @@
 #include "Lab2Inject.h"
 
-//BOOL SetPrivilege(HANDLE hToken, LPCTSTR szPrivName, BOOL fEnable) {
-//	TOKEN_PRIVILEGES tp;
-//	tp.PrivilegeCount = 1;
-//	LookupPrivilegeValue(NULL, szPrivName, &tp.Privileges[0].Luid);
-//	tp.Privileges[0].Attributes = fEnable ? SE_PRIVILEGE_ENABLED : 0;
-//	AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL);
-//	return((GetLastError() == ERROR_SUCCESS));
-//}
-
-
-
-
 BOOL SetPrivilege(
 	HANDLE hToken,          // access token handle
 	LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
 	BOOL bEnablePrivilege   // to enable or disable privilege
 )
 {
+	LOG("Injector_log");
 	TOKEN_PRIVILEGES tp;
 	LUID luid;
 
@@ -26,7 +15,7 @@ BOOL SetPrivilege(
 		lpszPrivilege,   // privilege to lookup 
 		&luid))        // receives LUID of privilege
 	{
-		LOGMSG("[ERROR] :: LookupPrivilegeValue error :: " + GetLastError());
+		LOGMSG("[ERROR] :: LookupPrivilegeValue error :: " + to_string(GetLastError()));
 		return FALSE;
 	}
 
@@ -47,12 +36,11 @@ BOOL SetPrivilege(
 		nullptr,
 		nullptr))
 	{
-		LOGMSG("[ERROR] :: AdjustTokenPrivileges error :: "+ GetLastError());
+		LOGMSG("[ERROR] :: AdjustTokenPrivileges error :: "+ to_string(GetLastError()));
 		return FALSE;
 	}
 
 	if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
-
 	{
 		LOGMSG("[ERROR] ::The token does not have the specified privilege. \n");
 		return FALSE;
@@ -64,24 +52,25 @@ BOOL SetPrivilege(
 
 HANDLE getProcHandleByName(char* proc_name)
 {
-	HANDLE hProcess = nullptr;
-	HANDLE hSnapshot = nullptr;
+	LOG("Injector_log");
+	HANDLE h_process;
+	HANDLE h_snapshot;
 
 	PROCESSENTRY32 pe32 = { sizeof(PROCESSENTRY32) };
 
 	// Takes a snapshot of the all processes in the system
-	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (INVALID_HANDLE_VALUE == hSnapshot)
+	h_snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (INVALID_HANDLE_VALUE == h_snapshot)
 	{
-		LOGMSG("[!] ERROR :: CreateToolhelp32Snapshot failed :: " + GetLastError());
+		LOGMSG("[!] ERROR :: CreateToolhelp32Snapshot failed :: " + to_string(GetLastError()));
 		return nullptr;
 	}
 
 	// Retrieve information about the first process
-	if (!Process32First(hSnapshot, &pe32))
+	if (!Process32First(h_snapshot, &pe32))
 	{
-		LOGMSG("[!] ERROR :: Process32First failed :: " + GetLastError());
-		CloseHandle(hSnapshot);
+		LOGMSG("[!] ERROR :: Process32First failed :: " + to_string(GetLastError()));
+		CloseHandle(h_snapshot);
 		return nullptr;
 	}
 
@@ -90,7 +79,7 @@ HANDLE getProcHandleByName(char* proc_name)
 	{
 		if (std::string(pe32.szExeFile) == std::string(proc_name))
 		{
-			hProcess = OpenProcess(
+			h_process = OpenProcess(
 				PROCESS_CREATE_THREAD 
 				| PROCESS_QUERY_INFORMATION 
 				| PROCESS_VM_OPERATION 
@@ -98,35 +87,36 @@ HANDLE getProcHandleByName(char* proc_name)
 				| PROCESS_VM_WRITE, 
 				FALSE, 
 				pe32.th32ProcessID);
-			if (nullptr == hProcess)
+			if (nullptr == h_process)
 			{
-				LOGMSG("[!] ERROR :: OpenProcess failed :: " + GetLastError());
-				CloseHandle(hSnapshot);
+				LOGMSG("[!] ERROR :: OpenProcess failed :: " + to_string(GetLastError()));
+				CloseHandle(h_snapshot);
 				return nullptr;
 			}
 
-			CloseHandle(hSnapshot);
-			return hProcess;
+			CloseHandle(h_snapshot);
+			return h_process;
 		}
-	} while (Process32Next(hSnapshot, &pe32));
+	} while (Process32Next(h_snapshot, &pe32));
 
-	CloseHandle(hSnapshot);
+	CloseHandle(h_snapshot);
 	return nullptr;
 }
 
 HANDLE getProcHandle(char* argum, char* procNameId)
 {
+	LOG("Injector_log");
 	HANDLE hProcess = nullptr;
 	HANDLE hToken = nullptr;
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken))
 	{
-		LOGMSG("[!] ERROR :: OpenProcessToken Error :: " + GetLastError());
+		LOGMSG("[!] ERROR :: OpenProcessToken Error :: " + to_string(GetLastError()));
 	}
 	else {
 		
 		if (!SetPrivilege(hToken, SE_DEBUG_NAME, TRUE)) {
-			LOGMSG("[!] ERROR :: Lab2_SetPrivilegeSE_DEBUG_NAME Error :: " + GetLastError());
+			LOGMSG("[!] ERROR :: Lab2_SetPrivilegeSE_DEBUG_NAME Error :: " + to_string(GetLastError()));
 		}
 	
 	}
@@ -136,7 +126,7 @@ HANDLE getProcHandle(char* argum, char* procNameId)
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, std::stoi(procNameId));
 		if (!hProcess)
 		{
-			LOGMSG("[!] ERROR :: OpenProcess failed :: " + GetLastError());
+			LOGMSG("[!] ERROR :: OpenProcess failed :: " + to_string(GetLastError()));
 		}
 
 	}
@@ -146,7 +136,7 @@ HANDLE getProcHandle(char* argum, char* procNameId)
 	}
 	else
 	{
-		LOGMSG("[!] ERROR :: Invalid argument specifier :: " + GetLastError());
+		LOGMSG("[!] ERROR :: Invalid argument specifier :: " + to_string(GetLastError()));
 	}
 	
 	return hProcess;
@@ -155,8 +145,9 @@ HANDLE getProcHandle(char* argum, char* procNameId)
 
 HANDLE dllInjector(HANDLE hProcess, const std::string& dllPath)
 {
-	HANDLE hThread = nullptr;
-	LPVOID lpvResult = nullptr;
+	LOG("Injector_log");
+	HANDLE h_thread;
+	LPVOID lpvResult;
 	LOGMSG("[v] ENTER :: dllInjector");
 
 
@@ -172,40 +163,65 @@ HANDLE dllInjector(HANDLE hProcess, const std::string& dllPath)
 		return nullptr;
 	}
 
-	hThread = CreateRemoteThread(hProcess, nullptr, 0,
-		(LPTHREAD_START_ROUTINE)LoadLibraryA, lpvResult, 0, nullptr);
-	if (!hThread)
+	h_thread = CreateRemoteThread(hProcess, nullptr, 0,
+		reinterpret_cast<LPTHREAD_START_ROUTINE>(LoadLibraryA), lpvResult, 0, nullptr);
+	if (!h_thread)
 	{
 		LOGMSG("[!] ERROR :: CreateRemoteThread failed :: " + to_string(GetLastError()));
 		return nullptr;
 	}
 
-	return hThread;
+	return h_thread;
 }
+
 
 int main(int argc, char* argv[]) 
 {
-	if (4 > argc)
+
+
+	LOG("Injector_log");
+	if (argc < 4)
 	{
-		LOGMSG("[!]\nUsage :: app.exe -name proc.exe (–pid PID) -func FUNCTION_NAME (-hide FILE_PATH)\n");
+		LOGMSG("[!] Usage :: app.exe -name proc.exe (–pid PID) -func FUNCTION_NAME (-hide FILE_PATH)\n");
 		return __LINE__;
 	}
 	
-	HANDLE hProcess = nullptr;
+	HANDLE h_process;
 	int res = 0;
-	char cur_dir[MAX_PATH] = { 0 };
+	char cur_dir[_MAX_PATH] = { 0 };
+	char file_path[_MAX_PATH] = { 0 };
 	string msg;
 	string path;
+	string fileName;
 	Pipe pipe_serv(PIPE_NAME);
-	const string task(std::string(argv[3]) + std::string(" ") + std::string(argv[4]));
+	string task;
+
+
+	if (strcmp(argv[3], "-hide") == 0)
+	{
+		fileName = argv[4];
+		if (fileName.find(':') == std::string::npos)
+		{
+			if (GetFullPathName(fileName.c_str(), _MAX_PATH, file_path, nullptr) == 0)
+			{
+				return -1;
+			}
+
+			fileName = file_path;
+
+		}
+	}
+
+	task = std::string(argv[3]) + std::string(" ") + std::string(fileName);
+	
 	
 	GetCurrentDirectory(MAX_PATH, cur_dir);
 	path.append(cur_dir);
 	path.append(DLL_NAME);
 	
-	hProcess = getProcHandle(argv[1], argv[2]);
+	h_process = getProcHandle(argv[1], argv[2]);
 
-	if (!hProcess)
+	if (h_process == NULL)
 	{
 		LOGMSG("[!] ERROR :: Process handle has not been got");
 		return -1;
@@ -226,7 +242,7 @@ int main(int argc, char* argv[])
 
 	LOGMSG("[v] OK :: Pipe has been created");
 	
-	if (nullptr == dllInjector(hProcess, path))
+	if (nullptr == dllInjector(h_process, path))
 	{
 		LOGMSG("[!] ERROR :: Unable to inject DLL to process!");
 		return -1;
@@ -234,7 +250,6 @@ int main(int argc, char* argv[])
 	
 	LOGMSG("[v] OK :: DLL "+ path + " has been injected to "+ argv[2]);
 	
-
 	LOGMSG("[v] Waiting for a pipe client... " );
 	
 	pipe_serv.waitForClient();
@@ -243,6 +258,7 @@ int main(int argc, char* argv[])
 
 	try
 	{
+		LOGMSG("[!] Message to pipe :: " + task);
 		pipe_serv.sendMessage(task);
 	}
 	catch (std::string & error)
@@ -271,14 +287,13 @@ int main(int argc, char* argv[])
 
 			if (res)
 			{
-				cout << msg << endl;
+				LOGMSG("[!!!] :: " + msg);
 				msg.clear();
 			}
 
 			Sleep(100);
 		}
 	}
-
 	LOGMSG("[v] :: Injector has finished");
 
 	return 0;

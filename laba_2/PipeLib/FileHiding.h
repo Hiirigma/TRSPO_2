@@ -12,14 +12,14 @@ using namespace std;
 	DetourTransactionBegin();\
 	DetourUpdateThread(GetCurrentThread());\
 	DetourAttach(&(PVOID&)(orig_addr), new_addr);\
-	er = DetourTransactionCommit();\
-	if (er == NO_ERROR)\
+	err = DetourTransactionCommit();\
+	if (err == NO_ERROR)\
 	{\
 		LOGMSG("[v] :: Detoured successfully " + func);\
 	}\
 	else\
 	{\
-		LOGMSG("[ERROR] :: detoured failed " + func + std::to_string(er));\
+		LOGMSG("[ERROR] :: detoured failed " + func + " :: " + std::to_string(err));\
 		return -1;\
 	}\
 }

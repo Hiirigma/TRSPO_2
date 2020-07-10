@@ -5,6 +5,7 @@
 #include <AclAPI.h>
 #include <tchar.h>
 
+//C:\Users\hiirigma\Desktop\oop_2.txt
 Pipe::Pipe(const char *name)
 {
 	this->hPipe = nullptr;
@@ -19,6 +20,7 @@ Pipe::~Pipe()
 
 void Pipe::createNamedPipe()
 {
+	LOG("Pipe_log");
 	int bufsize = 512;
 	SECURITY_ATTRIBUTES sa;
 	if (this->createSecurityAttributes(&sa) < 0)
@@ -45,11 +47,13 @@ void Pipe::createNamedPipe()
 		std::string error("[ERROR] CreateNamedPipe failed :: " + std::to_string(GetLastError()));
 		throw error;
 	}
+	LOGMSG("[!] Exit from createNamedPipe");
 }
 
 
 void Pipe::waitForClient()
 {
+	LOG("Pipe_log");
 	BOOL f_connected = FALSE;
 
 	while (true)
@@ -67,12 +71,13 @@ void Pipe::waitForClient()
 
 		Sleep(300);
 	}
+	LOGMSG("[!] Exit from waitForClient");
 }
 
 void Pipe::openNamedPipe()
 {
 	DWORD dwMode = PIPE_READMODE_MESSAGE;
-	
+	LOG("Pipe_log");
 	// Try to open a named pipe; wait for it, if necessary
 	while (true)
 	{
@@ -115,6 +120,7 @@ void Pipe::openNamedPipe()
 		std::string error("[ERROR] :: SetNamedPipeHandleState failed :: " + std::to_string(GetLastError()));
 		throw error;
 	}
+	LOGMSG("[!] Exit from openNamedPipe");
 }
 
 
@@ -123,7 +129,7 @@ int Pipe::receiveMessage(std::string& message)
 {
 	char buffer[512] = {0};
 	DWORD cbRead = 0;
-
+	LOG("Pipe_log");
 	BOOL fSuccess = ReadFile(
 		this->hPipe, // pipe handle 
 		buffer,      // buffer to receive reply 
@@ -141,13 +147,14 @@ int Pipe::receiveMessage(std::string& message)
 	{
 		message.append(buffer, cbRead);
 	}
-
+	LOGMSG("[!] Exit from receiveMessage");
 	return cbRead;
 }
 
 
 void Pipe::sendMessage(const std::string& message)
 {
+	LOG("Pipe_log");
 	DWORD cbWritten;
 	BOOL fSuccess = WriteFile(
 		this->hPipe,      // handle to pipe 
@@ -161,23 +168,25 @@ void Pipe::sendMessage(const std::string& message)
 		std::string error("[ERROR] WriteFile failed :: " + std::to_string(GetLastError()));
 		throw error;
 	}
+	LOGMSG("[!] Exit from sendMessage");
 }
 
 int Pipe::createSecurityAttributes(SECURITY_ATTRIBUTES* sa)
 {
+	LOG("Pipe_log");
 	PSID pEveryoneSID = nullptr;
 	PACL pACL = nullptr;
 	PSECURITY_DESCRIPTOR pSD;
 	EXPLICIT_ACCESS ea;
 	SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
-
+	LOGMSG("[!] Entered in createSecurityAttributes");
 	// Create a well-known SID for the Everyone group
 	if (!AllocateAndInitializeSid(&SIDAuthWorld, 1,
 		SECURITY_WORLD_RID,
 		0, 0, 0, 0, 0, 0, 0,
 		&pEveryoneSID))
 	{
-		LOGMSG("[ERROR] AllocateAndInitializeSid failed :: " + std::to_string(GetLastError())); 
+		LOGMSG("[ERROR] AllocateAndInitializeSid failed :: " + std::to_string(GetLastError()));
 		return -1;
 	}
 
@@ -224,6 +233,6 @@ int Pipe::createSecurityAttributes(SECURITY_ATTRIBUTES* sa)
 	sa->nLength = sizeof(SECURITY_ATTRIBUTES);
 	sa->lpSecurityDescriptor = pSD;
 	sa->bInheritHandle = FALSE;
-
+	LOGMSG("[!] Exit from createSecurityAttributes");
 	return 0;
 }

