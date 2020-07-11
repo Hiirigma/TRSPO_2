@@ -1,1 +1,5 @@
 *.tlog*.exe*.dll
+*.*tlog
+*/*.*tlog
+*/*.tlog
+*.pdb.vs*.log*.*.log*.db*.VC.db*.*.*.log*.obj*.pdb
