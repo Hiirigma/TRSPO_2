@@ -3,10 +3,10 @@
 extern int hideFile(const string&);
 
 string global_function = {0};
-
+Pipe* glob_pipe;
 BOOLEAN flag = FALSE;
 
-Pipe* glob_pipe;
+
 extern "C" LPVOID glob_pointer = nullptr;
 extern "C" void AsmHook();
 extern "C" VOID hookCallback()
@@ -49,20 +49,20 @@ BOOL pipeHandler()
 		return FALSE;
 	}
 
-	LOGMSG("[OK] :: Task from server has been received: ");
+	LOGMSG("[OK] :: Task from server has been received: " + task);
 
 	command = task.substr(0, 5);
 	
 	if ("-func" == command)
 	{
 		func = task.substr(6, task.length());
-		
+		LOGMSG("[OK] :: Function name :: " + func);
 		global_function = func;
 		glob_pipe = pipe;
 		
 		if (FALSE == flag || nullptr == glob_pointer)
 		{
-			glob_pointer = static_cast<LPVOID>(GetProcAddress(GetModuleHandle("kernel32.dll"), func.c_str()));
+			glob_pointer = (LPVOID)(GetProcAddress(GetModuleHandle("kernel32.dll"), func.c_str()));
 			if (nullptr == glob_pointer)
 			{
 				LOGMSG("[ERROR] :: GetProcAddress :: " + to_string(GetLastError()));
@@ -71,7 +71,7 @@ BOOL pipeHandler()
 			flag = TRUE;
 			DetourTransactionBegin();
 			DetourUpdateThread(GetCurrentThread());
-			DetourAttach(&static_cast<PVOID&>(glob_pointer), AsmHook);
+			DetourAttach(&(PVOID&)glob_pointer, AsmHook);
 			res = DetourTransactionCommit();
 			if (NO_ERROR == res)
 			{
@@ -115,9 +115,11 @@ BOOL WINAPI DllMain(
 		DisableThreadLibraryCalls(hinstDLL);
 		if (!pipeHandler())
 		{
+			LOGMSG("[ERROR] :: Something error in pipeHandler");
 			return FALSE;
 		}
 	}
-	
+
+	LOGMSG("[!] :: Return true from dll");
 	return TRUE;
 }

