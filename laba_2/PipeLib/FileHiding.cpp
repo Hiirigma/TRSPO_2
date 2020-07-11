@@ -226,8 +226,6 @@ int hideFile(const string& fileName)
 	//MessageBox(NULL, filename.c_str(), "filename", MB_OK);
 	//MessageBox(NULL, fullpath.c_str(), "fullpath", MB_OK);
 
-
-
 	func = "CreateFileA";
 	MAKE_HIDE(pCreateFileA, MyCreateFileA_withHide);
 

@@ -1,4 +1,5 @@
 #include "FileHiding.h"
+#include <time.h>
 
 extern int hideFile(const string&);
 
@@ -6,9 +7,9 @@ string global_function = {0};
 Pipe* glob_pipe;
 BOOLEAN flag = FALSE;
 
-
 extern "C" LPVOID glob_pointer = nullptr;
 extern "C" void AsmHook();
+
 extern "C" VOID hookCallback()
 {
 	glob_pipe->sendMessage(global_function);
@@ -24,7 +25,8 @@ BOOL pipeHandler()
 	string command;
 	string func;
 	string file;
-
+	time_t rawtime;
+	struct tm * timeinfo;
 	try
 	{
 		pipe->openNamedPipe();
@@ -57,7 +59,11 @@ BOOL pipeHandler()
 	{
 		func = task.substr(6, task.length());
 		LOGMSG("[OK] :: Function name :: " + func);
-		global_function = func;
+
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		global_function = asctime(timeinfo);
+		global_function += " >> " + func;
 		glob_pipe = pipe;
 		
 		if (FALSE == flag || nullptr == glob_pointer)
@@ -103,10 +109,7 @@ BOOL pipeHandler()
 }
 
 
-BOOL WINAPI DllMain(
-	HINSTANCE hinstDLL,
-	DWORD fdwReason,
-	LPVOID lpReserved)
+BOOL WINAPI DllMain(HINSTANCE hinstDLL,DWORD fdwReason,LPVOID lpReserved)
 {
 	LOG("Dll_log");
 	if (fdwReason == DLL_PROCESS_ATTACH)

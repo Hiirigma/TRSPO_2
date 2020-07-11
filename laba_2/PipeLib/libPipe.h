@@ -55,5 +55,4 @@ private:
 	HANDLE hPipe;
 	std::string pipename;
 	int createSecurityAttributes(SECURITY_ATTRIBUTES*);
-
 };

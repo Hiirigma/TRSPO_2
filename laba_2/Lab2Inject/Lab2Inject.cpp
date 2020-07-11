@@ -150,7 +150,6 @@ HANDLE dllInjector(HANDLE hProcess, const std::string& dllPath)
 	LPVOID lpvResult = nullptr;
 	LOGMSG("[v] ENTER :: dllInjector");
 
-
 	lpvResult = VirtualAllocEx(hProcess, nullptr, dllPath.size(), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	if (!lpvResult) {
 		LOGMSG("[ERROR] :: VirtualAllocEx failed :: " + to_string(GetLastError()));
@@ -177,13 +176,11 @@ HANDLE dllInjector(HANDLE hProcess, const std::string& dllPath)
 
 int main(int argc, char* argv[]) 
 {
-
-
 	LOG("Injector_log");
 	if (argc < 4)
 	{
 		LOGMSG("[!] Usage :: app.exe -name proc.exe (–pid PID) -func FUNCTION_NAME (-hide FILE_PATH)\n");
-		return __LINE__;
+		return -1;
 	}
 	
 	HANDLE h_process = nullptr;
@@ -206,9 +203,7 @@ int main(int argc, char* argv[])
 			{
 				return -1;
 			}
-
 			fileName = file_path;
-
 		}
 		task = argv[3];
 		task += " " + fileName;
@@ -224,17 +219,6 @@ int main(int argc, char* argv[])
 	path.append(cur_dir);
 	path.append(DLL_NAME);
 	
-	h_process = getProcHandle(argv[1], argv[2]);
-
-	if (h_process == NULL)
-	{
-		LOGMSG("[ERROR] :: Process handle has not been got");
-		return -1;
-	}
-
-	LOGMSG("[v] OK :: Process handle has been got");
-	
-	
 	try
 	{
 		pipe_serv.createNamedPipe();
@@ -247,6 +231,16 @@ int main(int argc, char* argv[])
 
 	LOGMSG("[v] OK :: Pipe has been created");
 	
+	h_process = getProcHandle(argv[1], argv[2]);
+
+	if (h_process == NULL)
+	{
+		LOGMSG("[ERROR] :: Process handle has not been got");
+		return -1;
+	}
+
+	LOGMSG("[v] OK :: Process handle has been got");
+
 	if (nullptr == dllInjector(h_process, path))
 	{
 		LOGMSG("[ERROR] :: Unable to inject DLL to process!");
