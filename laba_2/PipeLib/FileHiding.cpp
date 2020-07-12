@@ -1,5 +1,7 @@
 
 #include "FileHiding.h"
+#include <filesystem>
+namespace fs = std::experimental::filesystem;
 
 string fullpath;
 string path;
@@ -29,6 +31,24 @@ BOOL(WINAPI *pFindNextFileA)(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData
 
 BOOL(WINAPI *pFindNextFileW)(HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData) = FindNextFileW;
 
+
+bool makeMaskCheck(char *s, char *p)
+{
+	char *rs = 0, *rp = NULL;
+	while (1)
+		if (*p == '*')
+			rs = s, rp = ++p;
+		else if (!*s)
+			return !*p;
+		else if (*s == *p || *p == '?')
+			++s, ++p;
+		else if (rs)
+			s = ++rs, p = rp;
+		else
+			return false;
+}
+
+
 #pragma region
 
 __declspec(dllexport) HANDLE WINAPI MyFindFirstFileExA_withHide(
@@ -40,7 +60,7 @@ __declspec(dllexport) HANDLE WINAPI MyFindFirstFileExA_withHide(
 	DWORD              dwAdditionalFlags
 )
 {
-	if (string(lpFileName) == fullpath)
+	if (makeMaskCheck((char *)fs::path(lpFileName).filename().u8string().c_str(), (char *)fullpath.c_str()) == 1)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -66,7 +86,7 @@ __declspec(dllexport) HANDLE WINAPI MyFindFirstFileExW_withHide(
 	DWORD              dwAdditionalFlags
 )
 {
-	if (wstring(lpFileName) == wfullpath)
+	if (makeMaskCheck((char *)fs::path(lpFileName).filename().u16string().c_str(), (char *)wfullpath.c_str()) == 1)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -92,7 +112,7 @@ __declspec(dllexport) HANDLE WINAPI MyCreateFileA_withHide(
 	HANDLE hTemplateFile
 )
 {
-	if (string(lpFileName) == fullpath)
+	if (makeMaskCheck((char *)fs::path(lpFileName).filename().u8string().c_str(), (char *)fullpath.c_str()) == 1)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -110,7 +130,7 @@ __declspec(dllexport) HANDLE WINAPI MyCreateFileW_withHide(
 	HANDLE hTemplateFile
 )
 {
-	if (wfullpath == wstring(lpFileName))
+	if (makeMaskCheck((char *)fs::path(lpFileName).filename().u16string().c_str(), (char *)wfullpath.c_str()) == 1)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -131,7 +151,7 @@ __declspec(dllexport) HANDLE WINAPI MyFindFirstFileA_withHide(
 	LPWIN32_FIND_DATAA lpFindFileData
 )
 {
-	if (string(lpFileName) == fullpath)
+	if (makeMaskCheck((char *)fs::path(lpFileName).filename().u8string().c_str(), (char *)fullpath.c_str()) == 1)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -145,7 +165,7 @@ __declspec(dllexport) HANDLE WINAPI MyFindFirstFileW_withHide(
 	LPWIN32_FIND_DATAW lpFindFileData
 )
 {
-	if (wstring(lpFileName) == wfullpath)
+	if (makeMaskCheck((char *)fs::path(lpFileName).filename().u16string().c_str(), (char *)wfullpath.c_str()) == 1)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -158,7 +178,7 @@ __declspec(dllexport) BOOL WINAPI MyFindNextFileA_withHide(
 	LPWIN32_FIND_DATAA lpFindFileData
 )
 {
-	if (string(lpFindFileData->cFileName) == fullpath)
+	if (makeMaskCheck((char *)fs::path(lpFindFileData->cFileName).filename().u8string().c_str(), (char *)fullpath.c_str()) == 1)
 	{
 		return ERROR_NO_MORE_FILES;
 	}
@@ -170,7 +190,7 @@ __declspec(dllexport) BOOL WINAPI MyFindNextFileW_withHide(
 	LPWIN32_FIND_DATAW lpFindFileData
 )
 {
-	if (wstring(lpFindFileData->cFileName) == wfullpath)
+	if (makeMaskCheck((char *)fs::path(lpFindFileData->cFileName).filename().u16string().c_str(), (char *)wfullpath.c_str()) == 1)
 	{
 		return ERROR_NO_MORE_FILES;
 	}

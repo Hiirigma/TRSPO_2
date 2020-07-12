@@ -36,7 +36,7 @@
     <ProjectGuid>{981D976F-D426-44D2-A91F-B2AD9C99698E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>PipeLib</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
     <ProjectName>addLibs</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
