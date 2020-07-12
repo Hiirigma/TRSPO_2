@@ -193,28 +193,10 @@ int main(int argc, char* argv[])
 	Pipe pipe_serv(PIPE_NAME);
 	string task;
 
+	task = argv[3];
+	task += " ";
+	task += argv[4];
 
-	if (strcmp(argv[3], "-hide") == 0)
-	{
-		fileName = argv[4];
-		if (fileName.find(':') == std::string::npos)
-		{
-			if (GetFullPathName(fileName.c_str(), _MAX_PATH, file_path, nullptr) == 0)
-			{
-				return -1;
-			}
-			fileName = file_path;
-		}
-		task = argv[3];
-		task += " " + fileName;
-	}
-	else
-	{
-		task = argv[3];
-		task += " ";
-		task += argv[4];
-	}
-	
 	GetCurrentDirectory(MAX_PATH, cur_dir);
 	path.append(cur_dir);
 	path.append(DLL_NAME);
@@ -286,7 +268,7 @@ int main(int argc, char* argv[])
 
 			if (res)
 			{
-				LOGMSG("[!!!] :: " + msg);
+				cout << "[!!!] :: " + msg;
 				msg.clear();
 			}
 
